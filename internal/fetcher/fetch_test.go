@@ -28,7 +28,7 @@ func TestFetch(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(_ *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			got, err := parse(strings.NewReader(tt.arg))
 			if err != nil {
 				t.Errorf(err.Error())
