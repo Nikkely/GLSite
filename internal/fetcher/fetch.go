@@ -2,8 +2,11 @@ package fetcher
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -25,7 +28,7 @@ func Fetch() error {
 		return err
 	}
 
-	// TODO: output 
+	// TODO: output
 	// var works *[]model.Work
 	_, err = parse(strings.NewReader(res))
 	return nil
@@ -62,6 +65,8 @@ func fetchHTML(url string) (res string, err error) {
 	return
 }
 
+var idReg = regexp.MustCompile(`https://www\.dlsite\.com/home/work/=/product_id/(.+)\.html`)
+
 func parse(input io.Reader) (*[]model.Work, error) {
 	doc, err := goquery.NewDocumentFromReader(input)
 	if err != nil {
@@ -70,16 +75,89 @@ func parse(input io.Reader) (*[]model.Work, error) {
 
 	works := []model.Work{}
 	list := doc.Find(`li.search_result_img_box_inner`)
-	list.Each(func(i int, s *goquery.Selection) {
+	list.Each(func(index int, s *goquery.Selection) {
 		var (
 			work model.Work
 			ok   bool
 		)
-		if work.Name, ok = s.Find(`dd.work_name > div.multiline_truncate > a`).Attr("title"); !ok {
-			log.Printf("work_name not found")
+		if work.URL, ok = s.Find(`dd.work_name > div.multiline_truncate > a`).Attr("href"); !ok {
+			log.Println("url not found")
 			return
 		}
+		var matches []string
+		if matches = idReg.FindStringSubmatch(work.URL); len(matches) < 1 {
+			log.Println("failed parsing id")
+			return
+		}
+		work.ID = matches[1]
+		if work.Name, ok = s.Find(`dd.work_name > div.multiline_truncate > a`).Attr("title"); !ok {
+			log.Println("work_name not found")
+			return
+		}
+		if work.MakerName = s.Find(`dd.maker_name > a`).Text(); work.MakerName == "" {
+			log.Println("maker_name not found")
+			return
+		}
+		if work.Author = s.Find(`span.author > a`).Text(); work.Author == "" {
+			log.Println("author not found")
+			return
+		}
+		if t := s.Find(`span.discount`).Text(); t == "" {
+			log.Println("discount not found")
+			return
+		} else {
+			if work.Discount, err = strconv.Atoi(strings.Replace(strings.Replace(t, ",", "", -1), "円", "", -1)); err != nil {
+				log.Println("discount format unexpected")
+				return
+			}
+		}
+		if t := s.Find(`span.strike`).Text(); t != "" {
+			if work.Price, err = strconv.Atoi(strings.Replace(strings.Replace(t, ",", "", -1), "円", "", -1)); err != nil {
+				log.Println("price format unexpected")
+				return
+			}
+		}
+		if t := s.Find(`span._dl_count_` + work.ID).Text(); t == "" {
+			log.Println("dl count not found")
+			return
+		} else {
+			if work.DL, err = strconv.Atoi(strings.Replace(t, ",", "", -1)); err != nil {
+				log.Println("dl count fomat unexpected")
+				return
+			}
+		}
+		if r := s.Find(`dd.work_rating`); len(r.Nodes) == 0 {
+			log.Println("rating star not found")
+			return
+		} else {
+			star := -1
+			for s := 0; s <= 50; s += 5 {
+				if len(r.Find(`div.star_`+strconv.Itoa(s)).Nodes) > 0 {
+					star = s
+					break
+				}
+			}
+			if star == -1 {
+				log.Println("rating star format unexpected")
+				return
+			}
+			work.RatingStar = star
+			if t := r.Find(`div.star_` + strconv.Itoa(star)).Text(); t == "" {
+				log.Println("rating total not found")
+				return
+			} else {
+				if work.RatingTotal, err = strconv.Atoi(
+					strings.Replace(
+						strings.Replace(
+							strings.Replace(t, ",", "", -1), "(", "", -1), ")", "", -1)); err != nil {
+					log.Println("rating total unexpected")
+					return
+				}
+			}
+		}
+
 		works = append(works, work)
+		fmt.Printf("progress: %d / %d", index, len(list.Nodes))
 	})
 	return &works, nil
 }

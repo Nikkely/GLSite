@@ -1,14 +1,15 @@
 package model
 
 type Work struct {
-	Id          string
+	ID          string
 	Name        string
-	MakerName   string
+	MakerName   string // TODO: create Maker model
 	Author      string
 	Price       int
+	Discount    int
 	DL          int
 	URL         string
-	RatingStar  float32
+	RatingStar  int
 	RatingTotal int
 	Label       string
 }
