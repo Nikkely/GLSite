@@ -1,19 +1,17 @@
 package fetcher
 
 import (
-	"context"
+	"bytes"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/Nikkely/GLSite/internal/model"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/chromedp/cdproto/dom"
-	"github.com/chromedp/chromedp"
 )
 
 const (
@@ -35,38 +33,24 @@ func Fetch() error {
 }
 
 // fetchHTML get HTML with chronium
-func fetchHTML(url string) (res string, err error) {
-	// create chrome instance
-	ctx, cancel := chromedp.NewContext(
-		context.Background(),
-		// chromedp.WithDebugf(log.Printf),
-	)
-	defer cancel()
-
-	// create a timeout
-	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
-	defer cancel()
-
-	// 	chromedp.Value(`li#search_result_img_box_inner`, &example),
-	if err = chromedp.Run(ctx,
-		chromedp.Navigate(endpoint),
-		chromedp.Sleep(time.Second*waitSecond),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			node, e := dom.GetDocument().Do(ctx)
-			if e != nil {
-				return e
-			}
-			res, e = dom.GetOuterHTML().WithNodeID(node.NodeID).Do(ctx)
-			return e
-		}),
-	); err != nil {
-		return
+func fetchHTML(url string) (string, error) {
+	raw, err := http.Get(url)
+	if err != nil {
+		return "", err
 	}
-	return
+	defer raw.Body.Close()
+	body, err := io.ReadAll(raw.Body)
+	if err != nil {
+		return "", err
+	}
+	buf := bytes.NewBuffer(body)
+	return buf.String(), nil
 }
 
 var idReg = regexp.MustCompile(`https://www\.dlsite\.com/home/work/=/product_id/(.+)\.html`)
+var numReg = regexp.MustCompile(`\d+`)
 
+// parse parse model from html
 func parse(input io.Reader) (*[]model.Work, error) {
 	doc, err := goquery.NewDocumentFromReader(input)
 	if err != nil {
@@ -103,17 +87,19 @@ func parse(input io.Reader) (*[]model.Work, error) {
 			return
 		}
 		if t := s.Find(`span.discount`).Text(); t == "" {
-			log.Println("discount not found")
-			return
+			log.Println("discount not found") // continue if discount was not found
 		} else {
-			if work.Discount, err = strconv.Atoi(strings.Replace(strings.Replace(t, ",", "", -1), "円", "", -1)); err != nil {
-				log.Println("discount format unexpected")
+			if work.Discount, err = strconv.Atoi(strings.Join(numReg.FindAllString(t, -1), "")); err != nil {
+				log.Printf("discount format unexpected: %s\n", strings.Join(numReg.FindAllString(t, -1), ""))
 				return
 			}
 		}
-		if t := s.Find(`span.strike`).Text(); t != "" {
-			if work.Price, err = strconv.Atoi(strings.Replace(strings.Replace(t, ",", "", -1), "円", "", -1)); err != nil {
-				log.Println("price format unexpected")
+		if t := s.Find(`span.strike`).Text(); t == "" {
+			log.Println("price not found")
+			return
+		} else {
+			if work.Price, err = strconv.Atoi(strings.Join(numReg.FindAllString(t, -1), "")); err != nil {
+				log.Printf("price format unexpected: %s\n", t)
 				return
 			}
 		}
@@ -121,8 +107,8 @@ func parse(input io.Reader) (*[]model.Work, error) {
 			log.Println("dl count not found")
 			return
 		} else {
-			if work.DL, err = strconv.Atoi(strings.Replace(t, ",", "", -1)); err != nil {
-				log.Println("dl count fomat unexpected")
+			if work.DL, err = strconv.Atoi(strings.Join(numReg.FindAllString(t, -1), "")); err != nil {
+				log.Printf("dl count fomat unexpected: %s\n", t)
 				return
 			}
 		}
@@ -138,7 +124,7 @@ func parse(input io.Reader) (*[]model.Work, error) {
 				}
 			}
 			if star == -1 {
-				log.Println("rating star format unexpected")
+				log.Println("rating star not found")
 				return
 			}
 			work.RatingStar = star
@@ -146,18 +132,15 @@ func parse(input io.Reader) (*[]model.Work, error) {
 				log.Println("rating total not found")
 				return
 			} else {
-				if work.RatingTotal, err = strconv.Atoi(
-					strings.Replace(
-						strings.Replace(
-							strings.Replace(t, ",", "", -1), "(", "", -1), ")", "", -1)); err != nil {
-					log.Println("rating total unexpected")
+				if work.RatingTotal, err = strconv.Atoi(strings.Join(numReg.FindAllString(t, -1), "")); err != nil {
+					log.Printf("rating total format unexpected: %s\n", t)
 					return
 				}
 			}
 		}
 
 		works = append(works, work)
-		fmt.Printf("progress: %d / %d", index, len(list.Nodes))
+		fmt.Printf("progress: %d / %d\n", index, len(list.Nodes))
 	})
 	return &works, nil
 }
