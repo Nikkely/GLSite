@@ -10,8 +10,7 @@ SRC = $(shell git ls-files '*.go')
 PKGS = $(shell go list ./...)
 
 build:
-	./cmd/fetch/main.go
-	go build -o ./
+	go build -o fetch ./cmd/fetch
 
 test:
 	$(foreach pkg,$(PKGS), go test -cover $(pkg) || exit;)

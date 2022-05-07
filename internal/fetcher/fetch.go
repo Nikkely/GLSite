@@ -20,7 +20,7 @@ import (
 
 const (
 	urlPrefix  = `https://www.dlsite.com/home/works/type/=/language/jp/age_category%5B0%5D/general/work_category%5B0%5D/doujin/order%5B0%5D/trend/work_type_category%5B0%5D/audio/work_type_category_name%5B0%5D/%E3%83%9C%E3%82%A4%E3%82%B9%E3%83%BBASMR/options_and_or/and/options%5B0%5D/JPN/options%5B1%5D/NM/per_page/100/show_type/3/lang_options%5B0%5D/%E6%97%A5%E6%9C%AC%E8%AA%9E/lang_options%5B1%5D/%E8%A8%80%E8%AA%9E%E4%B8%8D%E8%A6%81/page/`
-	waitSecond = 2
+	waitSecond = 1
 )
 
 // joinFilePath makes path
@@ -78,7 +78,7 @@ func Fetch(outputdir string) error {
 				c <- e
 				return
 			}
-			c <- ioutil.WriteFile(joinFilePath(w.ID+".json", outputdir), raw, 0644)
+			c <- ioutil.WriteFile(joinFilePath(w.ID+"_"+w.FetchedAt.Format(time.RFC3339)+".json", outputdir), raw, 0644)
 		}(work, chs)
 	}
 
@@ -130,6 +130,7 @@ func parse(input io.Reader) ([]model.Work, error) {
 			work model.Work
 			ok   bool
 		)
+		work.FetchedAt = time.Now()
 		if work.URL, ok = s.Find(`dd.work_name > div.multiline_truncate > a`).Attr("href"); !ok {
 			log.Println("url not found")
 			return
@@ -152,19 +153,28 @@ func parse(input io.Reader) ([]model.Work, error) {
 			log.Printf("author not found: %s", work.URL) // continue if discount was not found
 		}
 		if t := s.Find(`span.discount`).Text(); t == "" {
-			log.Printf("discount not found: %s", work.URL) // continue if discount was not found
+			if t := s.Find(`span.work_price`).Text(); t == "" {
+				log.Printf("discount and price not found")
+				return
+			} else {
+				if work.Price, err = strconv.Atoi(strings.Join(numReg.FindAllString(t, -1), "")); err != nil {
+					log.Printf("price format unexpected: %s\n", t)
+					return
+				}
+			}
 		} else {
 			if work.Discount, err = strconv.Atoi(strings.Join(numReg.FindAllString(t, -1), "")); err != nil {
 				log.Printf("discount format unexpected: %s\n", strings.Join(numReg.FindAllString(t, -1), ""))
 				return
 			}
-		}
-		if t := s.Find(`span.strike`).Text(); t == "" {
-			log.Printf("price not found: %s", work.URL) // continue if discount was not found
-		} else {
-			if work.Price, err = strconv.Atoi(strings.Join(numReg.FindAllString(t, -1), "")); err != nil {
-				log.Printf("price format unexpected: %s\n", t)
+			if t := s.Find(`span.strike`).Text(); t == "" {
+				log.Printf("discount found but price not found: %s", work.URL) // continue if discount was not found
 				return
+			} else {
+				if work.Price, err = strconv.Atoi(strings.Join(numReg.FindAllString(t, -1), "")); err != nil {
+					log.Printf("price format unexpected: %s\n", t)
+					return
+				}
 			}
 		}
 		if t := s.Find(`span._dl_count_` + work.ID).Text(); t == "" {
