@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
@@ -8,7 +9,10 @@ import (
 )
 
 func main() {
-	err := fetcher.Fetch()
+	dir := flag.String("path", "output", "output path")
+	flag.Parse()
+
+	err := fetcher.Fetch(*dir)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}

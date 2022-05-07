@@ -12,12 +12,12 @@ func TestFetch(t *testing.T) {
 	tests := []struct {
 		name string
 		arg  string
-		want *[]model.Work
+		want []model.Work
 	}{
 		{
 			name: "ok",
 			arg:  dummyHTML,
-			want: &[]model.Work{
+			want: []model.Work{
 				{
 					ID:          "RJ387206",
 					Name:        "【アズールレーン】指揮官を癒やし隊！・綾波とゆっくり過ごす約1日間【ASMR】",
@@ -29,7 +29,6 @@ func TestFetch(t *testing.T) {
 					URL:         "https://www.dlsite.com/home/work/=/product_id/RJ387206.html",
 					RatingStar:  50,
 					RatingTotal: 1312,
-					Label:       "",
 				},
 				{
 					ID:          "RJ385913",
