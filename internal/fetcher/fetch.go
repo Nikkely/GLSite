@@ -2,7 +2,6 @@ package fetcher
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -140,7 +139,7 @@ func parse(input io.Reader) (*[]model.Work, error) {
 		}
 
 		works = append(works, work)
-		fmt.Printf("progress: %d / %d\n", index, len(list.Nodes))
+		log.Printf("progress: %d / %d\n", index, len(list.Nodes))
 	})
 	return &works, nil
 }
