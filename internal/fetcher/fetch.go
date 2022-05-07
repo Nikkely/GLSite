@@ -2,16 +2,13 @@ package fetcher
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/Nikkely/GLSite/internal/model"
@@ -36,7 +33,7 @@ func joinFilePath(filename string, paths ...string) (path string) {
 }
 
 // Fetch scrape target
-func Fetch(outputdir string) error {
+func Fetch(writer Writer) error {
 	var works []model.Work
 	for p := 1; ; p++ {
 		log.Printf("fetch page %d", p)
@@ -66,30 +63,7 @@ func Fetch(outputdir string) error {
 
 		time.Sleep(waitSecond * time.Second)
 	}
-
-	chs := make(chan error, len(works))
-	wg := &sync.WaitGroup{}
-	for _, work := range works {
-		wg.Add(1)
-		go func(w model.Work, c chan error) {
-			defer wg.Done()
-			raw, e := json.Marshal(w)
-			if e != nil {
-				c <- e
-				return
-			}
-			c <- ioutil.WriteFile(joinFilePath(w.ID+"_"+w.FetchedAt.Format(time.RFC3339)+".json", outputdir), raw, 0644)
-		}(work, chs)
-	}
-
-	wg.Wait()
-	close(chs)
-	for e := range chs {
-		if e != nil {
-			log.Println(e.Error())
-		}
-	}
-	return nil
+	return writer.Write(works)
 }
 
 // fetchHTML get HTML with chronium
