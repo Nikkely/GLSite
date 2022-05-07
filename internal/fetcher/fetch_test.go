@@ -19,10 +19,29 @@ func TestFetch(t *testing.T) {
 			arg:  dummyHTML,
 			want: &[]model.Work{
 				{
-					Name: "【アズールレーン】指揮官を癒やし隊！・綾波とゆっくり過ごす約1日間【ASMR】",
+					ID:          "RJ387206",
+					Name:        "【アズールレーン】指揮官を癒やし隊！・綾波とゆっくり過ごす約1日間【ASMR】",
+					MakerName:   "アトリエメール",
+					Author:      "大地葉",
+					Price:       1650,
+					Discount:    1320,
+					DL:          7590,
+					URL:         "https://www.dlsite.com/home/work/=/product_id/RJ387206.html",
+					RatingStar:  50,
+					RatingTotal: 1312,
+					Label:       "",
 				},
 				{
-					Name: "絶対に寝かしつける!からかい上手な後輩彼女のあまあま安眠耳かき",
+					ID:          "RJ385913",
+					Name:        "絶対に寝かしつける!からかい上手な後輩彼女のあまあま安眠耳かき",
+					MakerName:   "いちのや",
+					Author:      "一之瀬りと",
+					Price:       1320,
+					Discount:    1056,
+					DL:          4055,
+					URL:         "https://www.dlsite.com/home/work/=/product_id/RJ385913.html",
+					RatingStar:  50,
+					RatingTotal: 856,
 				},
 			},
 		},
@@ -36,7 +55,7 @@ func TestFetch(t *testing.T) {
 			}
 			// fmt.Printf("%v", got) // for develop
 			if diff := cmp.Diff(tt.want, got); diff != "" {
-				t.Errorf("Hogefunc differs: (-got +want)\n%s", diff)
+				t.Errorf("parse differs: (-got +want)\n%s", diff)
 				return
 			}
 		})
