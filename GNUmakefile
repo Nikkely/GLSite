@@ -11,7 +11,7 @@ SRCS = $(shell git ls-files '*.go')
 PKGS = $(shell go list ./...)
 
 build:
-	go build -o fetch ./cmd/fetch
+	go build -o GLSite .
 
 test:
 	$(foreach pkg,$(PKGS), go test -cover $(pkg) || exit;)
