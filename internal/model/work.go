@@ -5,7 +5,7 @@ import "time"
 type Work struct {
 	ID          string    `json:"id"`
 	Name        string    `json:"name"`
-	MakerName   string    `json:"makerName"` // TODO: create Maker model
+	Maker       Maker     `json:"maker"`
 	Author      string    `json:"author"`
 	Price       int       `json:"price"`
 	Discount    int       `json:"discount"`

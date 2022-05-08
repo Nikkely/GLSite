@@ -6,6 +6,7 @@ import (
 
 	"github.com/Nikkely/GLSite/internal/model"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestFetch(t *testing.T) {
@@ -19,9 +20,13 @@ func TestFetch(t *testing.T) {
 			arg:  dummyHTML,
 			want: []model.Work{
 				{
-					ID:          "RJ387206",
-					Name:        "【アズールレーン】指揮官を癒やし隊！・綾波とゆっくり過ごす約1日間【ASMR】",
-					MakerName:   "アトリエメール",
+					ID:   "RJ387206",
+					Name: "【アズールレーン】指揮官を癒やし隊！・綾波とゆっくり過ごす約1日間【ASMR】",
+					Maker: model.Maker{
+						ID:   "RG64308",
+						Name: "アトリエメール",
+						URL:  "https://www.dlsite.com/home/circle/profile/=/maker_id/RG64308.html",
+					},
 					Author:      "大地葉",
 					Price:       1650,
 					Discount:    1320,
@@ -31,9 +36,13 @@ func TestFetch(t *testing.T) {
 					RatingTotal: 1312,
 				},
 				{
-					ID:          "RJ385913",
-					Name:        "絶対に寝かしつける!からかい上手な後輩彼女のあまあま安眠耳かき",
-					MakerName:   "いちのや",
+					ID:   "RJ385913",
+					Name: "絶対に寝かしつける!からかい上手な後輩彼女のあまあま安眠耳かき",
+					Maker: model.Maker{
+						ID:   "RG46007",
+						Name: "いちのや",
+						URL:  "https://www.dlsite.com/home/circle/profile/=/maker_id/RG46007.html",
+					},
 					Author:      "一之瀬りと",
 					Price:       1320,
 					Discount:    1056,
@@ -53,7 +62,7 @@ func TestFetch(t *testing.T) {
 				return
 			}
 			// fmt.Printf("%v", got) // for develop
-			if diff := cmp.Diff(tt.want, got); diff != "" {
+			if diff := cmp.Diff(tt.want, got, cmpopts.IgnoreFields(model.Work{}, "FetchedAt")); diff != "" {
 				t.Errorf("parse differs: (-got +want)\n%s", diff)
 				return
 			}

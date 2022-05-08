@@ -87,7 +87,8 @@ func fetchHTML(url string) (string, error) {
 	return buf.String(), nil
 }
 
-var idReg = regexp.MustCompile(`https://www\.dlsite\.com/home/work/=/product_id/(.+)\.html`)
+var workIDReg = regexp.MustCompile(`https://www\.dlsite\.com/home/work/=/product_id/(.+)\.html`)
+var makerIDReg = regexp.MustCompile(`https://www\.dlsite\.com/home/circle/profile/=/maker_id/(.+)\.html`)
 var numReg = regexp.MustCompile(`\d+`)
 
 // parse parses model from html
@@ -109,17 +110,28 @@ func parse(input io.Reader) ([]model.Work, error) {
 			log.Println("url not found")
 			return
 		}
-		var matches []string
-		if matches = idReg.FindStringSubmatch(work.URL); len(matches) < 1 {
-			log.Println("failed parsing id")
+		if matches := workIDReg.FindStringSubmatch(work.URL); len(matches) < 1 {
+			log.Println("failed parsing work id")
 			return
+		} else {
+			work.ID = matches[1]
 		}
-		work.ID = matches[1]
 		if work.Name, ok = s.Find(`dd.work_name > div.multiline_truncate > a`).Attr("title"); !ok {
 			log.Println("work_name not found")
 			return
 		}
-		if work.MakerName = s.Find(`dd.maker_name > a`).Text(); work.MakerName == "" {
+		work.Maker = model.Maker{}
+		if work.Maker.URL, ok = s.Find(`dd.maker_name > a`).Attr("href"); !ok {
+			log.Println("maker url not found")
+			return
+		}
+		if matches := makerIDReg.FindStringSubmatch(work.Maker.URL); len(matches) < 1 {
+			log.Println("failed parsing maker id")
+			return
+		} else {
+			work.Maker.ID = matches[1]
+		}
+		if work.Maker.Name = s.Find(`dd.maker_name > a`).Text(); work.Maker.Name == "" {
 			log.Println("maker_name not found")
 			return
 		}
