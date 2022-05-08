@@ -21,20 +21,31 @@ type AnaResult struct {
 	Report string
 }
 
+type AnalyzeMethod interface {
+	Name() string
+	Method(data workMap) ([]AnaResult, error)
+}
+
 func Analyze(dir string) error {
 	wm, err := load(dir)
 	if err != nil {
 		return err
 	}
-	log.Printf("Check price")
-	var res []AnaResult
-	if res, err = checkPrice(wm); err != nil {
-		return err
+
+	analyzers := []AnalyzeMethod{
+		NewChangePrice(),
 	}
-	if len(res) == 0 {
-		log.Printf("No work price changed")
-	} else {
-		ReportStdout(res)
+	for _, a := range analyzers {
+		log.Printf(`Analyze: %s`, a.Name())
+		var res []AnaResult
+		if res, err = a.Method(wm); err != nil {
+			return err
+		}
+		if len(res) == 0 {
+			log.Printf("No result")
+		} else {
+			ReportStdout(res)
+		}
 	}
 	return nil
 }
