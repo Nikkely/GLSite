@@ -3,9 +3,11 @@ package analyzer
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/Nikkely/GLSite/model"
 )
@@ -19,11 +21,29 @@ type AnaResult struct {
 	Report string
 }
 
+func Analyze(dir string) error {
+	wm, err := load(dir)
+	if err != nil {
+		return err
+	}
+	log.Printf("Check price")
+	var res []AnaResult
+	if res, err = checkPrice(wm); err != nil {
+		return err
+	}
+	if len(res) == 0 {
+		log.Printf("No work price changed")
+	} else {
+		ReportStdout(res)
+	}
+	return nil
+}
+
 // load loads works from dir
 func load(dir string) (workMap, error) {
 	ret := workMap{}
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
+		if info.IsDir() || !strings.HasSuffix(path, ".json") {
 			return nil
 		}
 		if err != nil {
@@ -36,7 +56,7 @@ func load(dir string) (workMap, error) {
 		}
 		var work model.Work
 		if err = json.Unmarshal(raw, &work); err != nil {
-			return err
+			return fmt.Errorf("failed loading %s: %s", path, err.Error())
 		}
 
 		if _, ok := ret[work.ID]; !ok {
