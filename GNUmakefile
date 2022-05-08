@@ -3,10 +3,11 @@
 	vendor \
 	fmt \
 	fmtcheck\
+	vet \
 	test \
 	rmoutput \
 
-SRC = $(shell git ls-files '*.go')
+SRCS = $(shell git ls-files '*.go')
 PKGS = $(shell go list ./...)
 
 build:
@@ -17,6 +18,15 @@ test:
 
 rmoutput:
 	rm -rf ./output/*.json
+
+vet:
+	echo $(PKGS) | xargs env go vet || exit;
+
+fmt:
+	gofmt -s -w $(SRCS)
+
+fmtcheck:
+	$(foreach file,$(SRCS),gofmt -s -d $(file);)
 
 clean:
 	echo $(PKGS) | xargs go clean || exit;
