@@ -33,9 +33,14 @@ func joinFilePath(filename string, paths ...string) (path string) {
 }
 
 // Fetch scrape target
-func Fetch(writer Writer) error {
+func Fetch(dir string, options ...FetchOption) error {
+	option := defaultOption(dir)
+	for _, f := range options {
+		f(&option)
+	}
+
 	var works []model.Work
-	for p := 1; ; p++ {
+	for p := 1; option.unlimitPage || p <= option.limitPage; p++ {
 		log.Printf("fetch page %d", p)
 		res, err := fetchHTML(urlPrefix + strconv.Itoa(p))
 		end := false
@@ -63,7 +68,7 @@ func Fetch(writer Writer) error {
 
 		time.Sleep(waitSecond * time.Second)
 	}
-	return writer.Write(works)
+	return option.writer.Write(works)
 }
 
 // fetchHTML get HTML with chronium

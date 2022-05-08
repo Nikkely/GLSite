@@ -11,19 +11,15 @@ import (
 	"github.com/Nikkely/GLSite/internal/model"
 )
 
-type Writer interface {
+type writer interface {
 	Write(works []model.Work) error
 }
 
-type JSONWriter struct {
+type jsonWriter struct {
 	outputDir string
 }
 
-func NewJSONWriter(path string) JSONWriter {
-	return JSONWriter{outputDir: path}
-}
-
-func (j JSONWriter) Write(works []model.Work) error {
+func (j jsonWriter) Write(works []model.Work) error {
 	chs := make(chan error, len(works))
 	wg := &sync.WaitGroup{}
 	for _, work := range works {
