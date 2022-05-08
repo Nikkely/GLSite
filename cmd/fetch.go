@@ -24,7 +24,7 @@ func init() {
 var fetchCmd = &cobra.Command{
 	Use:   "fetch",
 	Short: "Scrape and output",
-	Long:  `Scrape and output. You can choose format and specify output path.`,
+	Long:  `Scrape and output. You can choose format and output path.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dir, err := cmd.Flags().GetString(fetchDirPath)
 		if err != nil {
