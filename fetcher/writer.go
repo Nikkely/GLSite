@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Nikkely/GLSite/internal/model"
+	"github.com/Nikkely/GLSite/model"
 )
 
 type writer interface {

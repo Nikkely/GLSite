@@ -3,7 +3,7 @@ package cmd
 import (
 	"log"
 
-	"github.com/Nikkely/GLSite/internal/fetcher"
+	"github.com/Nikkely/GLSite/fetcher"
 	"github.com/spf13/cobra"
 )
 

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Nikkely/GLSite/internal/model"
+	"github.com/Nikkely/GLSite/model"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )

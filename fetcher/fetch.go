@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Nikkely/GLSite/internal/model"
+	"github.com/Nikkely/GLSite/model"
 	"github.com/PuerkitoBio/goquery"
 )
 
