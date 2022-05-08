@@ -1,7 +1,7 @@
 package fetcher
 
 type fetchOptions struct {
-	writer      writer
+	writer      Writer
 	limitPage   int
 	unlimitPage bool
 }
@@ -9,7 +9,7 @@ type FetchOption func(*fetchOptions)
 
 func defaultOption(dir string) fetchOptions {
 	return fetchOptions{
-		writer:      jsonWriter{outputDir: dir},
+		writer:      JSONWriter{OutputDir: dir},
 		limitPage:   0,
 		unlimitPage: true,
 	}
@@ -17,7 +17,7 @@ func defaultOption(dir string) fetchOptions {
 
 func OutputJSON(dir string) FetchOption {
 	return func(o *fetchOptions) {
-		o.writer = jsonWriter{outputDir: dir}
+		o.writer = JSONWriter{OutputDir: dir}
 	}
 }
 
