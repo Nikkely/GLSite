@@ -1,6 +1,9 @@
 package analyzer
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 type changePrice struct {
 	name string
@@ -40,5 +43,16 @@ func (c changePrice) Method(data workMap) ([]AnaResult, error) {
 			Work:   now,
 		})
 	}
+	sort.Slice(ret, func(i, j int) bool {
+		iPrice := ret[i].Work.Discount
+		if iPrice == 0 {
+			iPrice = ret[i].Work.Price
+		}
+		jPrice := ret[j].Work.Discount
+		if jPrice == 0 {
+			jPrice = ret[j].Work.Price
+		}
+		return iPrice > jPrice
+	})
 	return ret, nil
 }

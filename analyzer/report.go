@@ -25,8 +25,9 @@ func ReportStdout(results []AnaResult) {
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Name", "URL", "Yen", "Report"})
-	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-	table.SetCenterSeparator("|")
-	table.AppendBulk(data) // Add Bulk Data
+	for _, v := range data {
+		table.Append(v)
+	}
 	table.Render()
+	fmt.Fprintf(os.Stdout, "%d items reported\n", len(results))
 }

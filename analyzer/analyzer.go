@@ -26,23 +26,21 @@ type AnalyzeMethod interface {
 	Method(data workMap) ([]AnaResult, error)
 }
 
-func Analyze(dir string) error {
+func Analyze(dir string, methods ...AnalyzeMethod) error {
 	wm, err := load(dir)
 	if err != nil {
 		return err
 	}
+	log.Printf("total works = %d\n", len(wm))
 
-	analyzers := []AnalyzeMethod{
-		NewChangePrice(),
-	}
-	for _, a := range analyzers {
-		log.Printf(`Analyze: %s`, a.Name())
+	for _, a := range methods {
+		fmt.Fprintf(os.Stdout, "Method: %s\n", a.Name())
 		var res []AnaResult
 		if res, err = a.Method(wm); err != nil {
 			return err
 		}
 		if len(res) == 0 {
-			log.Printf("No result")
+			log.Println("No result")
 		} else {
 			ReportStdout(res)
 		}
