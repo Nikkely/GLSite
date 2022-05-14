@@ -10,6 +10,7 @@ import (
 const (
 	analyzeDirPathFlg     = "dir-path"
 	analyzeDLThresholdFlg = "dl-th"
+	analyzeOutputFormat   = "format"
 )
 
 func init() {
@@ -17,6 +18,7 @@ func init() {
 
 	AnalCmd.PersistentFlags().StringP(analyzeDirPathFlg, "d", "output", "path to output direcotry")
 	AnalCmd.PersistentFlags().Int(analyzeDLThresholdFlg, 50, "path to output direcotry")
+	AnalCmd.PersistentFlags().StringP(analyzeOutputFormat, "f", "table", "output format")
 }
 
 var AnalCmd = &cobra.Command{
@@ -32,6 +34,10 @@ var AnalCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
+		format, err := cmd.Flags().GetString(analyzeOutputFormat)
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
 
 		methods := []analyzer.AnalyzeMethod{
 			analyzer.NewChangePrice(),
@@ -39,7 +45,17 @@ var AnalCmd = &cobra.Command{
 			analyzer.NewChangeDL(dlth),
 		}
 
-		if err = analyzer.Analyze(dir, methods...); err != nil {
+		var reporter analyzer.Reporter
+		switch format {
+		case "table":
+			reporter = analyzer.NewReportStdoutTable()
+		case "simple":
+			reporter = analyzer.NewReportStdoutSimple()
+		default:
+			log.Fatalln("unknown format")
+		}
+
+		if err = analyzer.Analyze(dir, methods, reporter); err != nil {
 			log.Fatalln(err.Error())
 		}
 

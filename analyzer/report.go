@@ -7,7 +7,23 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-func ReportStdout(results []AnaResult) {
+type Reporter interface {
+	Report(methodName string, results []AnaResult)
+}
+
+type reportStdoutTable struct{}
+type reportStdoutSimple struct{}
+
+func NewReportStdoutTable() reportStdoutTable {
+	return reportStdoutTable{}
+}
+
+func NewReportStdoutSimple() reportStdoutSimple {
+	return reportStdoutSimple{}
+}
+
+func (r reportStdoutTable) Report(methodName string, results []AnaResult) {
+	fmt.Fprintln(os.Stdout, methodName)
 	data := [][]string{}
 	for _, r := range results {
 		price := r.Work.Price
@@ -30,4 +46,10 @@ func ReportStdout(results []AnaResult) {
 	}
 	table.Render()
 	fmt.Fprintf(os.Stdout, "%d items reported\n", len(results))
+}
+
+func (r reportStdoutSimple) Report(methodName string, results []AnaResult) {
+	for i, a := range results {
+		fmt.Fprintf(os.Stdout, "\n%s_%d\n%s %s\n%s\n%s\n", methodName, i, a.Work.Maker.Name, a.Work.Name, a.Work.URL, a.Report)
+	}
 }
