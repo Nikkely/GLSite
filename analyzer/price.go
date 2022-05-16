@@ -10,7 +10,7 @@ type changePrice struct {
 }
 
 func NewChangePrice() changePrice {
-	return changePrice{name: "Change Price"}
+	return changePrice{name: "割引作品"}
 }
 
 func (c changePrice) Name() string {
@@ -39,7 +39,7 @@ func (c changePrice) Method(data workMap) ([]AnaResult, error) {
 			continue
 		}
 		ret = append(ret, AnaResult{
-			Report: fmt.Sprintf(`Dicounted %d.`, discounted),
+			Report: fmt.Sprintf(`%d 円割引中です`, discounted),
 			Work:   now,
 		})
 	}

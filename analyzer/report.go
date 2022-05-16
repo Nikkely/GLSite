@@ -50,6 +50,6 @@ func (r reportStdoutTable) Report(methodName string, results []AnaResult) {
 
 func (r reportStdoutSimple) Report(methodName string, results []AnaResult) {
 	for i, a := range results {
-		fmt.Fprintf(os.Stdout, "\n%s_%d\n%s %s\n%s\n%s\n", methodName, i, a.Work.Maker.Name, a.Work.Name, a.Work.URL, a.Report)
+		fmt.Fprintf(os.Stdout, "\n%s_%d\n%s %s\n%s\n%s\n", methodName, i+1, a.Work.Maker.Name, a.Work.Name, a.Work.URL, a.Report)
 	}
 }

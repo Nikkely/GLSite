@@ -5,7 +5,7 @@ type isNewWork struct {
 }
 
 func NewisNew() isNewWork {
-	return isNewWork{name: "New Wrok"}
+	return isNewWork{name: "新作"}
 }
 
 func (c isNewWork) Name() string {
@@ -20,7 +20,7 @@ func (c isNewWork) Method(data workMap) ([]AnaResult, error) {
 			continue
 		}
 		ret = append(ret, AnaResult{
-			Report: "New Work",
+			Report: "",
 			Work:   works[0],
 		})
 	}

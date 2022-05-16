@@ -17,7 +17,7 @@ func init() {
 	rootCmd.AddCommand(AnalCmd)
 
 	AnalCmd.PersistentFlags().StringP(analyzeDirPathFlg, "d", "output", "path to output direcotry")
-	AnalCmd.PersistentFlags().Int(analyzeDLThresholdFlg, 50, "path to output direcotry")
+	AnalCmd.PersistentFlags().Int(analyzeDLThresholdFlg, 50, "threthold of DL diff")
 	AnalCmd.PersistentFlags().StringP(analyzeOutputFormat, "f", "table", "output format")
 }
 
